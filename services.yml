@@ -1,0 +1,16 @@
+  stream-usb-video-by-rtsp-multiple-camera:
+    scale: 1
+    startup: yes
+    always: yes
+    network: NodePort
+    privileged: yes
+    ports:
+      - name: usb
+        protocol: TCP
+        port: 8555
+        nodePort: 30055
+    env:
+      SUFFIX: 1
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/famanager
+      QUEUE_ORIGIN: stream-usb-video-by-rtsp-multiple-camera-queue
+      QUEUE_TO: template-matching-by-opencv-for-rtsp-queue
