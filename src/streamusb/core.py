@@ -74,12 +74,14 @@ class GstServer:
         self.stop()
 
     def client_connected(self, server, client):
-        logger.info(f'[RTSP] next service is connected')
+        # logger.info(f'[RTSP] next service is connected')
+        print(f'[RTSP] next service is connected')
 
     def on_media_constructed(self, factory, media):
         # get camera path
         if self.device_path is None:
-            logger.info("[RTSP] device is not connected")
+            # logger.info("[RTSP] device is not connected")
+            print("[RTSP] device is not connected")
             self.stop()
             return
         # get element state and check state
@@ -90,10 +92,12 @@ class GstServer:
         self.pipe.set_state(Gst.State.PLAYING)
         ret, _, _ = self.pipe.get_state(Gst.CLOCK_TIME_NONE)
         if ret == Gst.StateChangeReturn.FAILURE:
-            logger.info("[RTSP] cant connect to device: " + self.device_path)
+            # logger.info("[RTSP] cant connect to device: " + self.device_path)
+            print("[RTSP] cant connect to device: " + self.device_path)
             self.stop()
         else:
-            logger.info(f"[RTSP] connect to device ({self.device_path})")
+            # logger.info(f"[RTSP] connect to device ({self.device_path})")
+            print(f"[RTSP] connect to device ({self.device_path})")
 
     def set_device_path(self, device_path):
         self.device_path = device_path
@@ -116,7 +120,8 @@ class DeviceData:
 
         self.process = Process(target=self.server.start)
         self.process.start()
-        logger.info(f"[RTSP] ready at rtsp://{self.addr}")
+        # logger.info(f"[RTSP] ready at rtsp://{self.addr}")
+        print(f"[RTSP] ready at rtsp://{self.addr}")
 
     def get_serial(self):
         return self.serial
@@ -199,7 +204,7 @@ async def main():
         "SHENZHEN_AONI_ELECTRONIC_CO._LTD_SANWA_WebCamera_N2021121401": "/dev/video0"
     }, scale, is_docker, 1)
     
-    logger.info(metadata_list)
+    print(metadata_list)
 
     # # for debug
     # if debug:
