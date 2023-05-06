@@ -7,8 +7,9 @@ from asyncio import sleep
 from multiprocessing import Process
 
 import gi
-from custom_logger import init_logger
-from rabbitmq_client import RabbitmqClient
+
+# from custom_logger import init_logger
+# from rabbitmq_client import RabbitmqClient
 
 gi.require_version('Gst', '1.0')  # noqa
 gi.require_version('GstRtspServer', '1.0')  # noqa
@@ -26,9 +27,9 @@ DEFAULT_FPS = 10
 DEFAULT_PORT = 8554
 DEFAULT_URI = "/usb"
 
-SERVICE_NAME = "stream-usb-video-by-rtsp-multiple-camera"
+SERVICE_NAME = "localhost"
 SUFFIX = int(os.environ.get('SUFFIX', 0))
-SERVICE_NAME = SERVICE_NAME + '-' + str(SUFFIX) if SUFFIX > 1 else SERVICE_NAME
+# SERVICE_NAME = SERVICE_NAME + '-' + str(SUFFIX) if SUFFIX > 1 else SERVICE_NAME
 
 RABBITMQ_URL = os.environ.get("RABBITMQ_URL")
 QUEUE_ORIGIN = os.environ.get("QUEUE_ORIGIN")
@@ -176,14 +177,16 @@ class DeviceDataList:
             data.stop()
 
 
-async def main():
-    init_logger()
 
-    client = await RabbitmqClient.create(
-        RABBITMQ_URL,
-        [QUEUE_ORIGIN],
-        [QUEUE_TO]
-    )
+async def main():
+    print("start")
+    # init_logger()
+
+    # client = await RabbitmqClient.create(
+    #     RABBITMQ_URL,
+    #     [QUEUE_ORIGIN],
+    #     [QUEUE_TO]
+    # )
 
     scale = os.environ.get("SCALE")
     scale = 2 if not isinstance(scale, int) or scale <= 0 else scale
@@ -192,36 +195,46 @@ async def main():
 
     is_docker = True
 
-    # for debug
-    if debug:
-        device.start_rtsp_server({"test": "/dev/video0"}, scale, is_docker, 1)
-        while True:
-            sleep(5)
+    metadata_list = device.start_rtsp_server({
+        "SHENZHEN_AONI_ELECTRONIC_CO._LTD_SANWA_WebCamera_N2021121401": "/dev/video0"
+    }, scale, is_docker, 1)
+    
+    logger.info(metadata_list)
 
-    try:
-        async for message in client.iterator():
-            try:
-                async with message.process():
-                    device_list = message.data.get("device_list")
-                    if not device_list:
-                        continue
-                    metadata_list = device.start_rtsp_server(device_list, scale, is_docker, 1)
-                    for metadata, num in metadata_list:
-                        logger.info(metadata, num)
-                        await client.send(QUEUE_TO, {
-                            "type": "start",
-                            "rtsp": metadata,
-                        })
-                        # conn.output_kanban(
-                        #     metadata={
-                        #         "type": "start",
-                        #         "rtsp": metadata,
-                        #     },
-                        #     process_number=num,
-                        # )
+    # # for debug
+    # if debug:
+    #     device.start_rtsp_server({"test": "/dev/video0"}, scale, is_docker, 1)
+    #     while True:
+    #         sleep(5)
 
-            except Exception as e:
-                logger.error(e)
+    # try:
+    #     async for message in client.iterator():
+    #         logger.info("message: 11111")
+    #         logger.info(message.data)
 
-    finally:
-        device.stop_all_device()
+    #         try:
+    #             async with message.process():
+    #                 device_list = message.data.get("device_list")
+    #                 if not device_list:
+    #                     continue
+
+    #                 metadata_list = device.start_rtsp_server(device_list, scale, is_docker, 1)
+    #                 for metadata, num in metadata_list:
+    #                     logger.info(metadata, num)
+    #                     await client.send(QUEUE_TO, {
+    #                         "type": "start",
+    #                         "rtsp": metadata,
+    #                     })
+    #                     # conn.output_kanban(
+    #                     #     metadata={
+    #                     #         "type": "start",
+    #                     #         "rtsp": metadata,
+    #                     #     },
+    #                     #     process_number=num,
+    #                     # )
+
+    #         except Exception as e:
+    #             logger.error(e)
+
+    # finally:
+    #     device.stop_all_device()
